@@ -6,6 +6,7 @@
 #include <vector>
 #include <algorithm>
 #include <tuple>
+#include <chrono>
 #include "bitmap_image.hpp"
 
 using namespace std;
@@ -108,6 +109,8 @@ void mandelbrot2() {
 	bitmap_image image(w, h);
 	image.clear();
 
+	auto start = chrono::high_resolution_clock::now();
+
 	double dx = (maxX - minX) / ((double)image.width() - 1);
 	double dy = (maxY - minY) / ((double)image.height() - 1);
 
@@ -119,6 +122,11 @@ void mandelbrot2() {
 			calculatePixel2(xImage, yImage, cx, cy, max_iterations, image);
 		}
 	}
+
+	auto stop = chrono::high_resolution_clock::now();
+	auto duration = chrono::duration_cast<chrono::milliseconds>(stop - start);
+	cout << "Time taken by function: "
+		<< duration.count() << " milliseconds" << endl;
 
 	image.save_image("mandelbrot_set.bmp");
 }
