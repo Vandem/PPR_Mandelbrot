@@ -114,12 +114,45 @@ void mandelbrot2() {
 	double dx = (maxX - minX) / ((double)image.width() - 1);
 	double dy = (maxY - minY) / ((double)image.height() - 1);
 
-	for (unsigned int yImage = 0; yImage < image.height(); ++yImage)
+	int z, yImage, xImage, i;
+	double cx, cy, zx, x, zy, y;
+
+# pragma omp parallel \
+  shared ( max_iterations, maxX, minX, maxY, minY, z, image ) \
+  private ( yImage, xImage, i, cx, cy, zx, x, zy, y )
 	{
-		for (unsigned int xImage = 0; xImage < image.width(); ++xImage)
+# pragma omp for
+		for (yImage = 0; yImage < image.height(); ++yImage)
 		{
-			auto [cx, cy] = normalizeToViewRect(xImage, yImage, dx, dy, minX, minY);
-			calculatePixel2(xImage, yImage, cx, cy, max_iterations, image);
+			for (xImage = 0; xImage < image.width(); ++xImage)
+			{
+				auto [cx, cy] = normalizeToViewRect(xImage, yImage, dx, dy, minX, minY);
+				//calculatePixel2(xImage, yImage, cx, cy, max_iterations, image);
+
+				zx = cx;
+				zy = cy;
+
+				for (int i = 0; i < max_iterations; ++i)
+				{
+					x = zx * zx - zy * zy + cx;
+					y = 2 * zx * zy + cy;
+
+					if (((x * x) + (y * y)) > 4)
+					{
+						z = sqrt(x * x + y * y);
+
+						//https://en.wikipedia.org/wiki/Mandelbrot_set#Continuous_.28smooth.29_coloring
+						const unsigned int index = static_cast<unsigned int>
+							(1000.0 * log2(1.75 + i - log2(log2(z))) / log2(max_iterations));
+
+						image.set_pixel(xImage, yImage, jet_colormap[index]);
+
+						break;
+					}
+					zx = x;
+					zy = y;
+				}
+			}
 		}
 	}
 
