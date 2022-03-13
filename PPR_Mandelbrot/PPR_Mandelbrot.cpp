@@ -13,7 +13,7 @@
 #include <execution>
 #include "bitmap_image.hpp"
 
-#define NUM_THREADS 4
+#define NUM_THREADS 8
 
 using namespace std;
 
